@@ -1,0 +1,47 @@
+{
+	"name": "pl_master_ingestion",
+	"properties": {
+		"activities": [
+			{
+				"name": "lkp_get_metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT * FROM controll.DatasetMetadata\nWHERE LoadEnabled = 1",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sql_dynamic",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_tableName": "None"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"p_LoadType": {
+				"type": "string",
+				"defaultValue": "Incremental"
+			},
+			"p_RunDate": {
+				"type": "string",
+				"defaultValue": "@utcnow()"
+			}
+		},
+		"annotations": []
+	}
+}
