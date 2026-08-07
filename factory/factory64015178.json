@@ -1,0 +1,15 @@
+{
+	"name": "factory64015178",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9feeb6cd-8903-4b54-8d73-56e19eb652f0",
+		"tenantId": "8eb87a6e-8055-4135-b69d-f19c799ec045"
+	}
+}
