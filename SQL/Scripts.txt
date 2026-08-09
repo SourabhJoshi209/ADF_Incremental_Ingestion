@@ -1,0 +1,199 @@
+-- Create Schemas
+CREATE SCHEMA controll;
+
+CREATE SCHEMA staging;
+
+CREATE SCHEMA dbo;
+
+-- Create Metadata Table
+CREATE TABLE controll.DatasetMetadata
+(
+DatasetID INT IDENTITY(1,1),
+DatasetName VARCHAR(100),
+SourceFolder VARCHAR(200),
+TargetTable VARCHAR(100),
+LoadType VARCHAR(50),
+WatermarkColumn VARCHAR(100),
+PrimaryKeyColumn VARCHAR(100),
+FileFormat VARCHAR(20),
+IsActive BIT
+);
+
+-- Insert Sample Data
+INSERT INTO controll.DatasetMetadata
+VALUES
+(
+'Customer',
+'landing/customer',
+'Customer',
+'Incremental',
+'ModifiedDate',
+'CustomerID',
+'CSV',
+1
+);
+
+
+INSERT INTO controll.DatasetMetadata
+VALUES
+(
+'Product',
+'landing/product',
+'Product',
+'Incremental',
+'ModifiedDate',
+'ProductID',
+'CSV',
+1
+);
+
+
+INSERT INTO controll.DatasetMetadata
+VALUES
+(
+'Sales',
+'landing/sales',
+'Sales',
+'Incremental',
+'ModifiedDate',
+'SaleID',
+'CSV',
+1
+);
+
+-- Create Watermark Table
+CREATE TABLE controll.Watermark
+(
+DatasetName VARCHAR(100),
+LastWatermark DATETIME,
+LastRunDate DATETIME,
+Status VARCHAR(50)
+);
+
+-- Insert initial values in watermark table
+INSERT INTO control.Watermark
+VALUES
+('Customer','1900-01-01',NULL,'Completed'),
+('Product','1900-01-01',NULL,'Completed'),
+('Sales','1900-01-01',NULL,'Completed');
+
+-- Create Audit table
+CREATE TABLE control.AuditLog
+(
+RunID INT IDENTITY,
+PipelineName VARCHAR(100),
+DatasetName VARCHAR(100),
+StartTime DATETIME,
+EndTime DATETIME,
+RowsCopied INT,
+Status VARCHAR(50),
+ErrorMessage VARCHAR(MAX)
+);
+
+-- ##################################################################################################################################
+-- UPDATES
+-- Alter Metadata Table
+ALTER TABLE controll.DatasetMetadata
+ADD
+FilePath VARCHAR(500),
+FileNamePattern VARCHAR(200),
+Delimiter CHAR(1),
+HasHeader BIT,
+TargetSchema VARCHAR(100),
+LoadEnabled BIT,
+CreatedDate DATETIME DEFAULT GETDATE();
+
+-- Update Records
+UPDATE controll.DatasetMetadata
+SET
+FilePath='landing/customer',
+FileNamePattern='customer*.csv',
+Delimiter=',',
+HasHeader=1,
+TargetSchema='dbo',
+LoadEnabled=1
+WHERE DatasetName='Customer';
+
+
+UPDATE controll.DatasetMetadata
+SET
+FilePath='landing/product',
+FileNamePattern='product*.csv',
+Delimiter=',',
+HasHeader=1,
+TargetSchema='dbo',
+LoadEnabled=1
+WHERE DatasetName='Product';
+
+
+UPDATE controll.DatasetMetadata
+SET
+FilePath='landing/sales',
+FileNamePattern='sales*.csv',
+Delimiter=',',
+HasHeader=1,
+TargetSchema='dbo',
+LoadEnabled=1
+WHERE DatasetName='Sales';
+
+
+-- #######################################################################################
+-- Crate File Audit Table
+CREATE TABLE controll.FileAudit
+(
+    FileAuditID        BIGINT IDENTITY(1,1) PRIMARY KEY,
+    DatasetName        VARCHAR(100) NOT NULL,
+    FileName           VARCHAR(300) NOT NULL,
+    FilePath           VARCHAR(500) NOT NULL,
+    BatchID             UNIQUEIDENTIFIER NOT NULL,
+    PipelineRunID       VARCHAR(100) NULL,
+
+    StartTime           DATETIME2(3) NOT NULL,
+    EndTime             DATETIME2(3) NULL,
+
+    Status              VARCHAR(30) NOT NULL,
+    RowsCopied         BIGINT NULL,
+
+    ErrorMessage        VARCHAR(MAX) NULL
+);
+
+-- Stored Procedure Insert File Audit
+CREATE OR ALTER PROCEDURE control.usp_InsertFileAudit
+(
+    @DatasetName   VARCHAR(100),
+    @FileName      VARCHAR(300),
+    @FilePath      VARCHAR(500),
+    @BatchID       UNIQUEIDENTIFIER,
+    @PipelineRunID VARCHAR(100)
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    INSERT INTO control.FileAudit
+    (
+        DatasetName,
+        FileName,
+        FilePath,
+        BatchID,
+        PipelineRunID,
+        StartTime,
+        Status
+    )
+    VALUES
+    (
+        @DatasetName,
+        @FileName,
+        @FilePath,
+        @BatchID,
+        @PipelineRunID,
+        SYSUTCDATETIME(),
+        'Running'
+    );
+
+    SELECT CAST(SCOPE_IDENTITY() AS BIGINT) AS FileAuditID;
+
+END;
+GO
+
