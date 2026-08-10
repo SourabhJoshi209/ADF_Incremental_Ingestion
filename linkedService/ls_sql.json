@@ -5,13 +5,13 @@
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
-			"server": "svr64015178.database.windows.net",
-			"database": "sqldb1",
+			"server": "svr64060796.database.windows.net",
+			"database": "SQLDB1",
 			"encrypt": "mandatory",
 			"trustServerCertificate": false,
 			"authenticationType": "SQL",
 			"userName": "AzureAdmin",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEUzODhCODI1LUI1ODUtNEUzMC05RjJCLUEwOUFBMTUyNzdBQV84NDlhY2NiOS04YjNhLTQ5YWUtOTRjYi1lODY2ZDYyMWZlMmYiDQp9"
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEI5NzI2MUM2LUM1NkEtNDJDQi1CQ0EwLUJGMzA3MzY2RUU1Q19lNjRlYmRiMi0xMzM4LTQ4YjctOWM2NC1mMWQ4YzA5YWM0NTQiDQp9"
 		}
 	}
 }
