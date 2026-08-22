@@ -32,7 +32,7 @@
 				}
 			},
 			{
-				"name": "ForEach1",
+				"name": "Flow1",
 				"type": "ForEach",
 				"dependsOn": [
 					{
@@ -78,6 +78,7 @@
 								],
 								"storeSettings": {
 									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
 									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
@@ -111,6 +112,8 @@
 						{
 							"name": "append_list",
 							"type": "AppendVariable",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
 							"dependsOn": [
 								{
 									"activity": "filter_csv",
@@ -123,7 +126,7 @@
 							"typeProperties": {
 								"variableName": "csv_files",
 								"value": {
-									"value": "@activity('filter_csv').output.value[0].name",
+									"value": "@item().name",
 									"type": "Expression"
 								}
 							}
@@ -132,84 +135,106 @@
 				}
 			},
 			{
-				"name": "cpy_dynamic_ingestion",
-				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": true,
-							"wildcardFolderPath": {
-								"value": "@item().FilePath",
-								"type": "Expression"
-							},
-							"wildcardFileName": {
-								"value": "@item().FileNamePattern",
-								"type": "Expression"
-							},
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"writeBehavior": "insert",
-						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
-				},
-				"inputs": [
+				"name": "Flow2",
+				"type": "ForEach",
+				"dependsOn": [
 					{
-						"referenceName": "ds_adls_csv_dynamic",
-						"type": "DatasetReference",
-						"parameters": {
-							"p_folderPath": {
-								"value": "@item().FilePath",
-								"type": "Expression"
-							},
-							"p_fileName": {
-								"value": "@item().FileNamePattern",
-								"type": "Expression"
-							}
-						}
+						"activity": "Flow1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
-				"outputs": [
-					{
-						"referenceName": "ds_sql_dynamic",
-						"type": "DatasetReference",
-						"parameters": {
-							"p_tableName": {
-								"value": "@concat(item().TargetSchema,'.',item().TargetTable)",
-								"type": "Expression"
-							}
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filter_csv').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "cpy_dynamic_ingestion",
+							"type": "Copy",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@item().FilePath",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().FileNamePattern",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_adls_csv_dynamic",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folderPath": {
+											"value": "@item().FilePath",
+											"type": "Expression"
+										},
+										"p_fileName": {
+											"value": "@item().FileNamePattern",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sql_dynamic",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_tableName": {
+											"value": "@concat(item().TargetSchema,'.',item().TargetTable)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
 						}
-					}
-				]
+					]
+				}
 			}
 		],
 		"parameters": {
